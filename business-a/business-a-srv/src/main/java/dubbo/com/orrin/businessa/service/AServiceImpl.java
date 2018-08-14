@@ -10,6 +10,7 @@ import dubbo.com.orrin.businessa.client.api.BService;
 import dubbo.com.orrin.businessa.config.ExceptionUtil;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -25,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AServiceImpl implements AService {
 
 	private AtomicInteger count = new AtomicInteger(0);
+	private AtomicInteger nothingCount = new AtomicInteger(0);
 
 	@Value("${dubbo.application.id}")
 	private String applicationId;
@@ -56,6 +58,24 @@ public class AServiceImpl implements AService {
 	@SentinelResource(value = BusinessAApplication.RES_KEY_SAYBYE, blockHandler = "handleException", blockHandlerClass = {ExceptionUtil.class})
 	public String sayBye(String name) {
 		return "sayBye , " + bservice.sayHello(String.valueOf(count.getAndIncrement()));
+	}
+
+	@Override
+	@SentinelResource(value = BusinessAApplication.RES_KEY_SAYNOTHING)
+	public String sayNothing() {
+		nothingCount.getAndIncrement();
+		/**
+		 * 此方法RT = 1000 ~ 1100 ms
+		 */
+		Random rand =new Random(25);
+		int random = rand.nextInt(100) + 1000;
+		try {
+			Thread.sleep(random);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		return "say nothing " + random + "ms -->" + nothingCount;
 	}
 
 	public String exceptionHandler(String name, BlockException ex) {

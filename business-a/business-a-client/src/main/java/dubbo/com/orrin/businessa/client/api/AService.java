@@ -9,4 +9,6 @@ public interface  AService {
 	String saySomething(String name);
 
 	String sayBye(String name);
+
+	String sayNothing();
 }

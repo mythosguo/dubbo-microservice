@@ -6,6 +6,8 @@ import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
+import com.alibaba.csp.sentinel.slots.system.SystemRule;
+import com.alibaba.csp.sentinel.slots.system.SystemRuleManager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
@@ -25,6 +27,8 @@ public class BusinessAApplication {
 	public static final String RES_KEY_SAYSOMETHING = "dubbo.com.orrin.businessa.service.AServiceImpl:saySomething(java.lang.String)";
 	public static final String RES_KEY_SAYBYE = "dubbo.com.orrin.businessa.service.AServiceImpl:sayBye(java.lang.String)";
 	public static final String INTERFACE_RES_KEY = "dubbo.com.orrin.businessa.service.AServiceImpl";
+
+	public static final String RES_KEY_SAYNOTHING = "dubbo.com.orrin.businessa.service.AServiceImpl:sayNothing";
 
 	public static void main(String[] args) {
 		InitExecutor.doInit();
@@ -69,5 +73,13 @@ public class BusinessAApplication {
 		degradeRuleSomething.setTimeWindow(5);
 
 		DegradeRuleManager.loadRules(Collections.singletonList(degradeRuleSomething));
+
+		SystemRule systemRule = new SystemRule();
+		systemRule.setResource(RES_KEY_SAYNOTHING);
+		systemRule.setAvgRt(1050);
+		//CPU核数*2.5
+		systemRule.setHighestSystemLoad(10);
+		systemRule.setLimitApp("default");
+		SystemRuleManager.loadRules(Collections.singletonList(systemRule));
 	}
 }

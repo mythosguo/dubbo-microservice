@@ -9,6 +9,7 @@ import com.alibaba.dubbo.config.annotation.Reference;
 import dubbo.com.orrin.businessa.BusinessAApplication;
 import dubbo.com.orrin.businessa.client.api.AService;
 import dubbo.com.orrin.businessa.client.api.BService;
+import org.apache.curator.shaded.com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,12 @@ import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author migu-orrin on 2018/8/13 013.
@@ -34,6 +41,8 @@ public class AController {
 	@Reference(version = "1.0.0",
 			application = "business-b")
 	private BService bservice;
+
+	private static final ExecutorService pool = Executors.newFixedThreadPool(1000);
 
 	@GetMapping("/hello")
 	public Mono<String> hello(String word) {
@@ -92,6 +101,25 @@ public class AController {
 		Map<Integer, String> resultMap = new HashMap<>();
 		for (int i = 0; i < count; i++) {
 			resultMap.put(i, aservice.saySomething(word));
+		}
+
+		return Mono.just(resultMap.toString());
+	}
+
+	@GetMapping("/nothing/{count}")
+	public Mono<String> nothing(@PathVariable("count") int count) {
+		Map<Integer, String> resultMap = new HashMap<>();
+
+		for (int i = 0; i < count; i++) {
+			/*try {
+				Thread.sleep(2);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}*/
+			pool.submit(() -> {
+				String result = aservice.sayNothing();
+				LOGGER.info(result);
+			});
 		}
 
 		return Mono.just(resultMap.toString());
